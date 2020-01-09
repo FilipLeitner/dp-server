@@ -29,33 +29,17 @@ var weatherCall = async function  (req, res,next){
     next(err)
   }
 }
-var scheduler = async function (req, res, next) {
-  try {
-    let coords = req.body;
-    var j = schedule.scheduleJob('*/5 * * * * *', function(y){
-      rp(`https://api.openweathermap.org/data/2.5/weather?lat=${y[1]}&lon=${y[0]}&appid=0b0d0e3907c63bed7455a34088b44fae`, { json: true })
-      .then(function (res) {
-        console.log(res.clouds.all)
-        next()
-      })
-      .catch(function (err) {
-        next(err)
-      })
-    }.bind(null,coords));
-    next()
-  }
-  catch (err) {
-    next(err)
-  }
-}
+
 //API route 
 app.post('/api/cats',sentinel.sentinelHandler,  function (req, res) {
   try {
     // var request = req.body[0];
     // res.send(req.weather)
-    res.send(req.overpass)
+    res.send(req.overpasses)
   }
-  catch { res.send(err) }
+  catch { 
+    res.send(err)
+   }
 
 })
 
