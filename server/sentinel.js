@@ -1,11 +1,12 @@
 const rp = require("request-promise");
-var scheduler = require('./weather');
+var scheduler = require('./schedule');
 
 var sentinelHandler = function (req, res, next) {
     let sentinelAPI = 'f46281e8529cd0720867698265dc425b07ae7a631cec2e3527977c72012afc8c';
     //define BBOX property of https request
 
     let bbox
+    console.log(req.body)
     if (req.body.bbox){
         bbox = req.body.bbox;
     }
@@ -19,9 +20,6 @@ var sentinelHandler = function (req, res, next) {
     //calculate difference between actual date and requested day of fertilization
     //necessary for {daysAfter} parameter of http request
     let dayDiff = Math.abs((Math.ceil((Math.abs(reqDate - new Date)) / (1000 * 60 * 60 * 24))));
-    console.log(reqDate)
-    console.log(dayDiff)
-    console.log(new Date)
     //http request to Sentinel API 
     rp(`https://api.spectator.earth/overpass/?api_key=${sentinelAPI}&bbox=${bbox}&satellites=Sentinel-2A,Sentinel-2B&days_after=${dayDiff}`, { json: true })
         .then(response => {
