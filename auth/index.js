@@ -36,7 +36,32 @@ router.post("/signup", (req, res, next) => {
         res.send("User added");
       })
       .catch(error => {
-        res.json({ "ERROR:": error });
+        res.json({ "ERROR:": error.detail });
+      });
+  } else {
+    //error
+    res.json({ message: "Invalid user input " });
+  }
+});
+
+router.post("/login", (req, res, next) => {
+  if (validUser(req.body)) {
+    db.one(
+      "SELECT email FROM users WHERE email=$/email/ AND password = $/password/",
+      {
+        email: req.body.email,
+        password: req.body.password
+      }
+    )
+      .then(data => {
+        res.send(data);
+      })
+      .catch(error => {
+        res.json({
+          message: "Invalid username or password",
+          name: error.name,
+          code: error.code
+        });
       });
   } else {
     //error
