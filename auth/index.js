@@ -1,4 +1,5 @@
 const express = require("express");
+const bcrypt = require('bcrypt');
 const router = express.Router();
 const db = require("../database/index");
 
@@ -14,6 +15,10 @@ function validUser(user) {
   return validEmail && validPassword;
 }
 
+function existsEmail(email) {
+  return db.oneOrNone('SELECT * FROM users WHERE email = $1 LIMIT 1', email, a => !!a);
+}
+
 //router paths auth/*
 router.get("/", (req, res) => {
   res.json({
@@ -23,48 +28,93 @@ router.get("/", (req, res) => {
 
 router.post("/signup", (req, res, next) => {
   if (validUser(req.body)) {
-    console.log(db.connect);
-    db.one(
-      "INSERT INTO users(email, password) VALUES($/email/, $/password/) RETURNING email",
-      {
-        email: req.body.email,
-        password: req.body.password
-      }
-    )
-      .then(data => {
-        console.log("User added:", data.email); // print new user id;
-        res.send("User added");
+    existsEmail(req.body.email)
+      .then(exists => {
+        if (exists == false) {
+          bcrypt.hash(req.body.password, 10) //saltRounds
+            .then(function (hash) {
+              db.one(
+                "INSERT INTO users(email, password,phone_number,user_type,created_at) VALUES($/email/,$/password/, $/phone_number/,$/user_type/,$/created_at/) RETURNING email",
+                {
+                  email: req.body.email,
+                  password: hash,
+                  phone_number: req.body.phone_number || null,
+                  user_type: req.body.userType || 0,
+                  created_at: new Date()
+                }
+              )
+                .then(data => {
+                  console.log("User added:", data.email); // print new user id;
+                  res.send("User added");
+                })
+                .catch(error => {
+                  //Error while adding to DB
+                  res.json({ "ERROR:": error });
+                });
+
+            })
+            .catch(error => {
+              res.json({ "ERROR:": error });
+            });
+        }
+        else {
+          res.json({ message: "Email already taken" });
+        }
       })
       .catch(error => {
-        res.json({ "ERROR:": error.detail });
+        //pg-promise rejection (Most likely multiple rows are returned)
+        res.json({ message: error });
       });
+
   } else {
-    //error
+    //login user input not valid 
     res.json({ message: "Invalid user input " });
   }
 });
 
 router.post("/login", (req, res, next) => {
   if (validUser(req.body)) {
+
+    //checks wether user exists
     db.one(
-      "SELECT email FROM users WHERE email=$/email/ AND password = $/password/",
+      "SELECT * FROM users WHERE email=$/email/",
       {
         email: req.body.email,
-        password: req.body.password
       }
     )
-      .then(data => {
-        res.send(data);
+      .then(user => {
+        //compare password
+        bcrypt.compare(req.body.password, user.password)
+          .then(function (result) {
+            if (result) {
+              res.json({
+                message: "Logged in",
+                user: user.email
+              });
+
+            }
+            else {
+              //pw input was not matched with pw in database
+              res.json({
+                message: "Invalid password",
+                result
+              });
+
+            }
+
+          });
       })
       .catch(error => {
+        //login user input not valid 
         res.json({
           message: "Invalid username or password",
           name: error.name,
           code: error.code
         });
       });
+
   } else {
-    //error
+    //user doesnt exists 
     res.json({ message: "Invalid user input " });
   }
 });
