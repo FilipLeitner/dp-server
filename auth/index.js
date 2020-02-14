@@ -12,7 +12,12 @@ function validUser(user) {
     typeof user.password == "string" &&
     user.password.length > 6 &&
     user.password.trim() != "";
-  return validEmail && validPassword;
+  const validPN = true;
+  if (user.phone_number) {
+    typeof user.phone_number == "number" &&
+      user.phone_number > 6
+  }
+  return validEmail && validPassword && validPN;
 }
 
 function existsEmail(email) {
@@ -39,7 +44,7 @@ router.post("/signup", (req, res, next) => {
                   email: req.body.email,
                   password: hash,
                   phone_number: req.body.phone_number || null,
-                  user_type: req.body.userType || 0,
+                  user_type: req.body.user_type || 0,
                   created_at: new Date()
                 }
               )
@@ -49,16 +54,25 @@ router.post("/signup", (req, res, next) => {
                 })
                 .catch(error => {
                   //Error while adding to DB
-                  res.json({ "ERROR:": error });
+                  res.json({
+                    "ERROR:": error,
+                    passed: false
+                  });
                 });
 
             })
             .catch(error => {
-              res.json({ "ERROR:": error });
+              res.json({
+                "ERROR:": error,
+                passed: false
+              });
             });
         }
         else {
-          res.json({ message: "Email already taken" });
+          res.json({
+            message: "Email already taken",
+            passed: false
+          });
         }
       })
       .catch(error => {
@@ -68,7 +82,10 @@ router.post("/signup", (req, res, next) => {
 
   } else {
     //login user input not valid 
-    res.json({ message: "Invalid user input " });
+    res.json({
+      message: "Invalid user input ",
+      passed: false
+    });
   }
 });
 
@@ -115,6 +132,7 @@ router.post("/login", (req, res, next) => {
 
   } else {
     //user doesnt exists 
+    console.log('Invalid user input')
     res.json({ message: "Invalid user input " });
   }
 });
