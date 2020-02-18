@@ -1,5 +1,6 @@
 const rp = require("request-promise");
 var schedule = require("node-schedule");
+const db = require("../database/index");
 
 var scheduler = async function (req) {
   console.log(req.body);
@@ -13,7 +14,6 @@ var scheduler = async function (req) {
     rule.year = parseInt(req.body.overpass.date.substring(0, 4));
     rule.month = parseInt(req.body.overpass.date.substring(5, 7));
     rule.date = parseInt(req.body.overpass.date.substring(8, 10)) - req.body.notificationDate;
-
     var j = schedule.scheduleJob(
       "*/5 * * * * *",
       function (y) {
@@ -23,11 +23,35 @@ var scheduler = async function (req) {
         )
           .then(function (res) {
             console.log('clouds', res.clouds.all);
+            //set pending in database to false 
           })
-          .catch(function (err) { });
+          .catch(function (err) {
+            console.log(err)
+          });
       }.bind(null, coords)
     );
-  } catch (err) {
+    // STORE SCHEDULE JOB INTO DATABASE
+    //INSERT INTO scheduled_notifications(user,created_at,pending,RecurrenceRule,coords
+    console.log(req.body.user)
+    db.one(
+      "INSERT INTO schedules(email, created_at, pending,recurence,coords) VALUES($/email/,$/created_at/,$/pending/,$/recurence/,$/coords/) RETURNING email",
+      {
+        email: req.body.user,
+        pending: true,
+        recurence: rule,
+        coords: coords,
+        created_at: new Date()
+      }
+    )
+      .then(() => {
+      })
+      .catch(error => {
+        //Error while adding to DB
+        console.log(error)
+      });
+
+  }
+  catch (err) {
     console.log(err);
   }
 };

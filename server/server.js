@@ -17,7 +17,7 @@ app.use("/auth", auth);
 
 //middleware callback
 //makes weather information call
-var weatherCall = async function(req, res, next) {
+var weatherCall = async function (req, res, next) {
   console.log(req);
   try {
     // console.log(req.body)
@@ -27,11 +27,11 @@ var weatherCall = async function(req, res, next) {
       `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${long}&appid=0b0d0e3907c63bed7455a34088b44fae`,
       { json: true }
     )
-      .then(function(res) {
+      .then(function (res) {
         req.weather = res;
         next();
       })
-      .catch(function(err) {
+      .catch(function (err) {
         next(err);
       });
   } catch (err) {
@@ -40,7 +40,7 @@ var weatherCall = async function(req, res, next) {
 };
 
 //API route
-app.post("/api/cats", sentinel.sentinelHandler, function(req, res) {
+app.post("/api/cats", sentinel.sentinelHandler, function (req, res) {
   try {
     res.send(req.overpasses);
   } catch {
@@ -48,12 +48,14 @@ app.post("/api/cats", sentinel.sentinelHandler, function(req, res) {
   }
 });
 
-app.post("/api/scheduler", function(req, res) {
+app.post("/api/scheduler", function (req, res) {
   try {
     scheduler.scheduler(req).then(
       // res.send("Schedule job registered"),
-      console.log(req.cloudcover),
-      res.json(req.cloudcover)
+      // console.log(res.clouds.all),
+      res.json({
+        message: 'Job scheduled and saved to database'
+      })
     );
   } catch {
     res.send(err);
