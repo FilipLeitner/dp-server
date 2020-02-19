@@ -50,13 +50,14 @@ app.post("/api/cats", sentinel.sentinelHandler, function (req, res) {
 
 app.post("/api/scheduler", function (req, res) {
   try {
-    scheduler.scheduler(req).then(
+    scheduler.scheduler(req).then((response) => {
       // res.send("Schedule job registered"),
-      // console.log(res.clouds.all),
-      res.json({
-        message: 'Job scheduled and saved to database'
-      })
-    );
+      console.log('response', response)
+      console.log('About to send response'),
+        res.json({
+          message: req.insertMsg
+        })
+    });
   } catch {
     res.send(err);
   }
