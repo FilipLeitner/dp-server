@@ -1,6 +1,9 @@
 const rp = require("request-promise");
-var schedule = require("node-schedule");
+const schedule = require("node-schedule");
 const db = require("../database/index");
+const nodemailer = require('nodemailer');
+
+const fromMail = 'sentinelpredictor@gmail.com'
 
 async function jobExists(date, email) {
   return db.oneOrNone('SELECT * FROM schedules WHERE date = $1 AND email = $2 LIMIT 1', [date, email], a => !!a) // date when to notify
@@ -12,7 +15,7 @@ function validateDate(date) {
   return new Date(date[0], date[1] - 1, date[2]) > new Date()
 };
 
-var scheduler = async function (req) {
+const scheduler = async function (req) {
   // console.log(req.body);
   try {
     let coords = [
@@ -48,9 +51,42 @@ var scheduler = async function (req) {
               )
                 .then(function (res) {
                   console.log('clouds', res.clouds.all, new Date());
+                  console.log(req.body)
+                  //Define a transporter object
+                  const transporter = nodemailer.createTransport({
+                    service: 'gmail',
+                    auth: {
+                      user: fromMail,
+                      pass: 'uhorki121'
+                    }
+                  });
+                  let text = res.clouds.all >= 75 ? 'Expected cloud cover over your AOI is ' + res.clouds.all + ' data will most likely be unavaliable' : 'Expected cloud cover over your AOI is ' + res.clouds.all + ' image should be usable'
+                  // Email options
+                  let mailOptions = {
+                    from: fromMail,
+                    to: 'leitnerfilip@gmail.com', //req.body.user
+                    subject: 'Sentinel predictore notification',
+                    text: text,
+
+                  };
+                  //Send notification
+                  transporter.sendMail(mailOptions, (error, response) => {
+                    if (error) {
+                      console.log(error);
+                    }
+                    console.log(response.envelope)
+                  });
 
                   // only once
                   j.cancel();
+                  let identificator = ((req.body.area[1] + req.body.area[3]) / 2) + ((req.body.area[0] + req.body.area[2]) / 2)
+                  db.none('UPDATE schedules SET pending=$2 WHERE identificator = $1', [identificator, false])
+                    .then(() => {
+                      console.log('Job terminated')
+                    })
+                    .catch((er) => {
+                      console.log(er)
+                    });
                   //set pending in database to false 
 
                 })
@@ -62,32 +98,32 @@ var scheduler = async function (req) {
           );
           // STORE SCHEDULE JOB INFORMATION INTO DATABASE
           // USED FOR CHECKING OF EXISTANCE OR RESCHDULING IN CASE OF SERVER shut down
+          // ASYNC ADD TO DB ?
           db.one(
-            "INSERT INTO schedules(email, created_at, pending,recurence,coords,date) VALUES($/email/,$/created_at/,$/pending/,$/recurence/,$/coords/,$/date/) RETURNING email",
+            "INSERT INTO schedules(email, created_at, pending,recurence,coords,date,identificator) VALUES($/email/,$/created_at/,$/pending/,$/recurence/,$/coords/,$/date/,$/identificator/) RETURNING email",
             {
               email: req.body.user,
               pending: true,
               recurence: rule,
               coords: coords,
               created_at: new Date(),
-              date: [rule.year, rule.month, rule.date]
+              date: [rule.year, rule.month, rule.date],
+              identificator: coords[0] + coords[1]
             }
           )
             .then((response) => {
               console.log('ADDED')
-              req.insertMsg = "Job scheduled and saved into database for useer " + req.body.user;
-              return 'succes'
+              return "Job scheduled and saved into database for useer " + req.body.user
             })
             .catch(error => {
               //Error while adding to DB
               console.log(error)
               return error
             });
-          return { message: 'Job scheduled and will be saved to database' }
+          return 'Job scheduled and will be saved to database'
         }
         else {
-          console.log('Job already exits, not necessary to cerate anotherone')
-          return { message: 'Job already exits, not necessary to cerate anotherone' }
+          return 'Job already exits, not necessary to cerate anotherone'
         }
 
       })

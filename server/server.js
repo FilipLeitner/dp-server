@@ -40,7 +40,7 @@ var weatherCall = async function (req, res, next) {
 };
 
 //API route
-app.post("/api/cats", sentinel.sentinelHandler, function (req, res) {
+app.post("/api/overpass", sentinel.sentinelHandler, function (req, res) {
   try {
     res.send(req.overpasses);
   } catch {
@@ -51,12 +51,9 @@ app.post("/api/cats", sentinel.sentinelHandler, function (req, res) {
 app.post("/api/scheduler", function (req, res) {
   try {
     scheduler.scheduler(req).then((response) => {
-      // res.send("Schedule job registered"),
-      console.log('response', response)
-      console.log('About to send response'),
-        res.json({
-          message: req.insertMsg
-        })
+      res.json({
+        message: response
+      })
     });
   } catch {
     res.send(err);
