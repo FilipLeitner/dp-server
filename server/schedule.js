@@ -5,8 +5,9 @@ const nodemailer = require('nodemailer');
 
 const fromMail = 'sentinelpredictor@gmail.com'
 
-async function jobExists(date, email) {
-  return db.oneOrNone('SELECT * FROM schedules WHERE date = $1 AND email = $2 LIMIT 1', [date, email], a => !!a) // date when to notify
+async function jobExists(identificator, user) {
+  console.log(identificator)
+  return db.oneOrNone('SELECT * FROM schedules WHERE identificator = $1 AND email = $2 LIMIT 1', [identificator, user], a => !!a) // date when to notify
 };
 
 function validateDate(date) {
@@ -18,6 +19,13 @@ function validateDate(date) {
 const scheduler = async function (req) {
   // console.log(req.body);
   try {
+    if (!req.body.overpass.date) {
+      throw {
+        message: 'You need to select an overpass first',
+        error: new Error
+      }
+    }
+    req.identificator = parseInt(req.body.overpass.date.substring(5, 7)) * parseInt(req.body.overpass.date.substring(8, 10)) * req.body.notificationDate * ((req.body.area[1] + req.body.area[3]) / 2)
     let coords = [
       (req.body.area[1] + req.body.area[3]) / 2,
       (req.body.area[0] + req.body.area[2]) / 2
@@ -37,7 +45,7 @@ const scheduler = async function (req) {
     }
 
     //CHECKS WHETHER REQUESTED JOB TO SCHEDULE EXISTS OR NOT
-    let job = await jobExists(date, req.body.user)
+    let job = await jobExists(req.identificator, req.body.user)
       .then((response) => {
         console.log('job', response)
         if (response == false) {
@@ -79,8 +87,7 @@ const scheduler = async function (req) {
 
                   // only once
                   j.cancel();
-                  let identificator = ((req.body.area[1] + req.body.area[3]) / 2) + ((req.body.area[0] + req.body.area[2]) / 2)
-                  db.none('UPDATE schedules SET pending=$2 WHERE identificator = $1', [identificator, false])
+                  db.none('UPDATE schedules SET pending=$2 WHERE identificator = $1', [req.identificator, false])
                     .then(() => {
                       console.log('Job terminated')
                     })
@@ -108,22 +115,32 @@ const scheduler = async function (req) {
               coords: coords,
               created_at: new Date(),
               date: [rule.year, rule.month, rule.date],
-              identificator: coords[0] + coords[1]
+              identificator: req.identificator
             }
           )
             .then((response) => {
               console.log('ADDED')
-              return "Job scheduled and saved into database for useer " + req.body.user
+              return {
+                message: "Job scheduled and saved into database for user " + req.body.user,
+                code: 1
+              }
             })
             .catch(error => {
               //Error while adding to DB
               console.log(error)
               return error
             });
-          return 'Job scheduled and will be saved to database'
+          return {
+            message: "Job scheduled and saved into database for user " + req.body.user,
+            code: 1
+          }
         }
         else {
-          return 'Job already exits, not necessary to cerate anotherone'
+          return {
+            message: 'Job already exits, not necessary to create anotherone',
+            code: 99
+          }
+
         }
 
       })

@@ -9,11 +9,14 @@ var sentinel = require("./sentinel");
 var scheduler = require("./schedule");
 var auth = require("../auth/index");
 var db = require("../database/index");
+var dbquery = require("../database/query");
+
 
 //initiate server
 const app = express();
 app.use(bodyParser.json());
 app.use("/auth", auth);
+app.use("/db", dbquery);
 
 //middleware callback
 //makes weather information call
@@ -51,8 +54,10 @@ app.post("/api/overpass", sentinel.sentinelHandler, function (req, res) {
 app.post("/api/scheduler", function (req, res) {
   try {
     scheduler.scheduler(req).then((response) => {
+      console.log(response)
       res.json({
-        message: response
+        message: response.message || response,
+        code: response.code || 99
       })
     });
   } catch {

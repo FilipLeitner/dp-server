@@ -7,7 +7,7 @@ var sentinelHandler = function (req, res, next) {
 
     let bbox
     console.log(req.body)
-    if (req.body.bbox){
+    if (req.body.bbox) {
         bbox = req.body.bbox;
     }
     else if (req.body.coords) {
@@ -26,7 +26,8 @@ var sentinelHandler = function (req, res, next) {
 
             // filter the latest overpass  before the date of fertilaton
             // let sentinelOverpases = response.overpasses[response.overpasses.length-1]
-            req.overpasses = response.overpasses
+            req.overpasses = response.overpasses.filter(overpas => overpas.acquisition === true)
+
             // scheduler.scheduler(req)
             next()
         })
