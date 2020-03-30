@@ -2,6 +2,7 @@ const rp = require("request-promise");
 const schedule = require("node-schedule");
 const db = require("../database/index");
 const nodemailer = require('nodemailer');
+const moment = require('moment')
 
 const fromMail = 'sentinelpredictor@gmail.com'
 
@@ -17,7 +18,7 @@ function validateDate(date) {
 };
 
 const scheduler = async function (req) {
-  // console.log(req.body);
+  console.log(moment().format());
   try {
     if (!req.body.overpass.date) {
       throw {
@@ -113,7 +114,7 @@ const scheduler = async function (req) {
               pending: true,
               recurence: rule,
               coords: coords,
-              created_at: new Date(),
+              created_at: moment().format(),
               date: [rule.year, rule.month, rule.date],
               identificator: req.identificator
             }

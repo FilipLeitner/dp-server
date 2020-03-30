@@ -23,4 +23,20 @@ router.post("/getlist", (req, res) => {
 
 });
 
+router.post("/delete", (req, res) => {
+    db.one('DELETE FROM schedules WHERE identificator = $1 RETURNING email', [req.body.id])
+        .then(function (data) {
+            // success;
+            console.log(data)
+            res.send('Entry deleted')
+        })
+        .catch(function (error) {
+            // error;
+            res.json({
+                error
+            });
+        });
+
+});
+
 module.exports = router;
