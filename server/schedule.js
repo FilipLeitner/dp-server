@@ -31,12 +31,13 @@ const scheduler = async function (req) {
       (req.body.area[1] + req.body.area[3]) / 2,
       (req.body.area[0] + req.body.area[2]) / 2
     ];
-
     var rule = new schedule.RecurrenceRule();
     rule.year = parseInt(req.body.overpass.date.substring(0, 4));
     rule.month = parseInt(req.body.overpass.date.substring(5, 7));
     rule.date = parseInt(req.body.overpass.date.substring(8, 10)) - req.body.notificationDate;
     const date = [rule.year, rule.month, rule.date]
+    const scheduleDate = new Date(rule.year, rule.month - 1, rule.date, 10, 0, 0)
+    const dbDate = [rule.year, rule.month, rule.date, 10, 0, 0]
 
     if (!validateDate(date)) {
       throw {
@@ -52,7 +53,7 @@ const scheduler = async function (req) {
         if (response == false) {
           //CREATES SCHEDULE JOB
           var j = schedule.scheduleJob(
-            "*/5 * * * * *",
+            scheduleDate,
             function (y) {
               rp(
                 `https://api.openweathermap.org/data/2.5/weather?lat=${y[1]}&lon=${y[0]}&appid=0b0d0e3907c63bed7455a34088b44fae`,
@@ -112,7 +113,7 @@ const scheduler = async function (req) {
             {
               email: req.body.user,
               pending: true,
-              recurence: rule,
+              recurence: dbDate,
               coords: coords,
               created_at: moment().format(),
               date: [rule.year, rule.month, rule.date],
@@ -155,5 +156,6 @@ const scheduler = async function (req) {
     return err.message
   }
 };
+
 
 exports.scheduler = scheduler;

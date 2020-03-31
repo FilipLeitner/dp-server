@@ -10,6 +10,7 @@ var scheduler = require("./schedule");
 var auth = require("../auth/index");
 var db = require("../database/index");
 var dbquery = require("../database/query");
+var init = require('../server/init');
 
 
 //initiate server
@@ -65,9 +66,11 @@ app.post("/api/scheduler", function (req, res) {
   }
 });
 
+
 //run server on port:3000
 app.listen(3000, () => {
   console.log("Listening on port 3000");
+  init.restartSchedules();
 });
 
 //0b0d0e3907c63bed7455a34088b44fae
