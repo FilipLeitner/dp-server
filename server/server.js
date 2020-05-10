@@ -10,7 +10,7 @@ var scheduler = require("../scheduler/schedule");
 var auth = require("../auth/index");
 var db = require("../database/index");
 var dbquery = require("../database/query");
-var init = require('../server/init');
+var init = require('../Init/init');
 
 
 //initiate server
@@ -31,6 +31,7 @@ app.post("/api/overpass", sentinel.sentinelHandler, function (req, res) {
 
 app.post("/api/scheduler", function (req, res) {
   try {
+    console.log('server', scheduler)
     scheduler.scheduler(req).then((response) => {
       console.log(response)
       res.json({
@@ -38,8 +39,10 @@ app.post("/api/scheduler", function (req, res) {
         code: response.code || 99
       })
     });
-  } catch {
-    res.send(err);
+  } catch{
+    (err) => {
+      res.send(err);
+    }
   }
 });
 

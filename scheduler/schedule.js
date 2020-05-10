@@ -16,6 +16,17 @@ function validateDate(date) {
   console.log(new Date())
   return new Date(date[0], date[1] - 1, date[2]) > new Date()
 };
+function findForecast(list, date) {
+  for (let entry of list) {
+    console.log(entry.dt_txt)
+    console.log('day', date.day)
+    if (entry.dt_txt.includes(date.day) &&
+      Math.abs(parseInt(entry.dt_txt.substring(11, 13)) - parseInt(date.time.substring(1, 3))) < 2) {
+      console.log('entry', entry)
+      return entry
+    }
+  }
+};
 
 const scheduler = async function (req) {
   console.log(moment().format());
@@ -49,19 +60,18 @@ const scheduler = async function (req) {
     //CHECKS WHETHER REQUESTED JOB TO SCHEDULE EXISTS OR NOT
     let job = await jobExists(req.identificator, req.body.user)
       .then((response) => {
-        console.log('job', response)
+        console.log('job', req.body)
         if (response == false) {
           //CREATES SCHEDULE JOB
           var j = schedule.scheduleJob(
             scheduleDate,
             function (y) {
               rp(
-                `https://api.openweathermap.org/data/2.5/weather?lat=${y[1]}&lon=${y[0]}&appid=0b0d0e3907c63bed7455a34088b44fae`,
+                `https://api.openweathermap.org/data/2.5/forecast?lat=${y[1]}&lon=${y[0]}&appid=0b0d0e3907c63bed7455a34088b44fae`,
                 { json: true }
               )
                 .then(function (res) {
-                  console.log('clouds', res.clouds.all, new Date());
-                  console.log(req.body)
+                  let forecastNeeded = findForecast(res.list, req.body.overpass);
                   //Define a transporter object
                   const transporter = nodemailer.createTransport({
                     service: 'gmail',
@@ -70,7 +80,7 @@ const scheduler = async function (req) {
                       pass: 'uhorki121'
                     }
                   });
-                  let text = res.clouds.all >= 75 ? 'Expected cloud cover over your AOI is ' + res.clouds.all + ' data will most likely be unavaliable' : 'Expected cloud cover over your AOI is ' + res.clouds.all + ' image should be usable'
+                  let text = forecastNeeded.clouds.all >= 75 ? 'Expected cloud cover over your AOI is ' + forecastNeeded.clouds.all + ' data will most likely be unavaliable' : 'Expected cloud cover over your AOI is ' + forecastNeeded.clouds.all + ' image should be usable'
                   // Email options
                   let mailOptions = {
                     from: fromMail,
@@ -159,3 +169,4 @@ const scheduler = async function (req) {
 
 
 exports.scheduler = scheduler;
+exports.findForecast = findForecast;
