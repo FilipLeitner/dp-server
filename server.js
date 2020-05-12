@@ -5,12 +5,12 @@ const rp = require("request-promise");
 var schedule = require("node-schedule");
 
 //require modules
-var sentinel = require("../sentinel/sentinel");
-var scheduler = require("../scheduler/schedule");
-var auth = require("../auth/index");
-var db = require("../database/index");
-var dbquery = require("../database/query");
-var init = require('../Init/init');
+var sentinel = require("./sentinel/sentinel");
+var scheduler = require("./scheduler/schedule");
+var auth = require("./auth/index");
+var db = require("./database/index");
+var dbquery = require("./database/query");
+var init = require('./Init/init');
 
 
 //initiate server
