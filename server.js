@@ -47,10 +47,8 @@ app.post("/api/scheduler", function (req, res) {
 });
 
 
-//run server on port:3000
+//run server on port:5557
 app.listen(5557, () => {
-  console.log("Listening on port 3000");
+  console.log("Listening on port 5557");
   init.restartSchedules();
 });
-
-//0b0d0e3907c63bed7455a34088b44fae
