@@ -48,7 +48,7 @@ app.post("/api/scheduler", function (req, res) {
 
 
 //run server on port:3000
-app.listen(3000, () => {
+app.listen(5557, () => {
   console.log("Listening on port 3000");
   init.restartSchedules();
 });
