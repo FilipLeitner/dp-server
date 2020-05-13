@@ -18,13 +18,13 @@ const app = express();
 app.use(bodyParser.json());
 app.use("/auth", auth);
 app.use("/db", dbquery);
-
+app.use(express.static('static'))
 
 //API route
 app.post("/api/overpass", sentinel.sentinelHandler, function (req, res) {
   try {
     res.send(req.overpasses);
-  } catch {
+  } catch (err) {
     res.send(err);
   }
 });
@@ -39,11 +39,11 @@ app.post("/api/scheduler", function (req, res) {
         code: response.code || 99
       })
     });
-  } catch{
-    (err) => {
-      res.send(err);
-    }
+  } catch
+  (err) {
+    res.send(err);
   }
+
 });
 
 
