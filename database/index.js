@@ -5,6 +5,7 @@ const cn = {
   port: 5432,
   database: "fleitner",
   user: "fleitner",
+  password: ""
 };
 
 const db = pgp(cn);

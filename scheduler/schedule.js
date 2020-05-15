@@ -37,7 +37,7 @@ const scheduler = async function (req) {
         error: new Error
       }
     }
-    req.identificator = parseInt(req.body.overpass.date.substring(5, 7)) * parseInt(req.body.overpass.date.substring(8, 10)) * req.body.notificationDate * ((req.body.area[1] + req.body.area[3]) / 2)
+    req.identificator = (parseInt(req.body.overpass.date.substring(5, 7)) * parseInt(req.body.overpass.date.substring(8, 10)) * req.body.notificationDate * ((req.body.area[1] + req.body.area[3]) / 2)) * 1000000000000000;
     let coords = [
       (req.body.area[1] + req.body.area[3]) / 2,
       (req.body.area[0] + req.body.area[2]) / 2
@@ -48,7 +48,7 @@ const scheduler = async function (req) {
     rule.date = parseInt(req.body.overpass.date.substring(8, 10)) - req.body.notificationDate;
     const date = [rule.year, rule.month, rule.date]
     const scheduleDate = new Date(rule.year, rule.month - 1, rule.date, 10, 0, 0)
-    const dbDate = [rule.year, rule.month, rule.date, 10, 0, 0]
+    const dbDate = [rule.year, rule.month - 1, rule.date, 10, 0, 0]
 
     if (!validateDate(date)) {
       throw {
