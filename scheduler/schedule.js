@@ -64,7 +64,7 @@ const scheduler = async function (req) {
         if (response == false) {
           //CREATES SCHEDULE JOB
           var j = schedule.scheduleJob(
-            scheduleDate,
+            "*/5 * * * * *",
             function (y) {
               rp(
                 `https://api.openweathermap.org/data/2.5/forecast?lat=${y[1]}&lon=${y[0]}&appid=0b0d0e3907c63bed7455a34088b44fae`,
@@ -80,7 +80,7 @@ const scheduler = async function (req) {
                       pass: 'uhorki121'
                     }
                   });
-                  let text = forecastNeeded.clouds.all >= 75 ? 'Expected cloud cover over your AOI is ' + forecastNeeded.clouds.all + ' data will most likely be unavaliable' : 'Expected cloud cover over your AOI is ' + forecastNeeded.clouds.all + ' image should be usable'
+                  let text = forecastNeeded.clouds.all >= 75 ? 'Expected cloud cover over your AOI for a day: ' + req.body.overpass.day + ' is ' + forecastNeeded.clouds.all + '%. Data will most likely be unavaliable' : 'Expected cloud cover over your AOI for a day ' + req.body.overpass.day + ' is ' + forecastNeeded.clouds.all + ' %. Image SHOULD be USABLE'
                   // Email options
                   let mailOptions = {
                     from: fromMail,
