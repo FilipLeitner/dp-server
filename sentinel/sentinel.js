@@ -4,7 +4,7 @@ var scheduler = require('../scheduler/schedule');
 var sentinelHandler = function (req, res, next) {
     let sentinelAPI = 'f46281e8529cd0720867698265dc425b07ae7a631cec2e3527977c72012afc8c';
     //define BBOX property of https request
-
+    console.log('Queriny overpasses')
     let bbox
     console.log(req.body)
     if (req.body.bbox) {
