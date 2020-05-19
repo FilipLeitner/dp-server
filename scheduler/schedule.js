@@ -84,7 +84,7 @@ const scheduler = async function (req) {
                   // Email options
                   let mailOptions = {
                     from: fromMail,
-                    to: 'leitnerfilip@gmail.com', //req.body.user
+                    to: req.body.user,
                     subject: 'Sentinel predictore notification',
                     text: text,
 
